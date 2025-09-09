@@ -1,0 +1,4 @@
+[console_scripts]
+relay_field = topic_tools.relay_field:main
+transform = topic_tools.transform:main
+

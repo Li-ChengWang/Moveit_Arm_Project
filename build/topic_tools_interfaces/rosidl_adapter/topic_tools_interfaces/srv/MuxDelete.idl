@@ -1,0 +1,15 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from topic_tools_interfaces/srv/MuxDelete.srv
+// generated code does not contain a copyright notice
+
+
+module topic_tools_interfaces {
+  module srv {
+    struct MuxDelete_Request {
+      string topic;
+    };
+    struct MuxDelete_Response {
+      boolean success;
+    };
+  };
+};

@@ -1,0 +1,7 @@
+[console_scripts]
+koch_calibration = koch_ros2_wrapper.koch_arm_calibration:main
+koch_follower_control = koch_ros2_wrapper.koch_follower_control:main
+koch_leader_control = koch_ros2_wrapper.koch_leader_control:main
+koch_leader_follower = koch_ros2_wrapper.koch_leader_follower_control:main
+koch_vr_control = koch_ros2_wrapper.vr_control:main
+

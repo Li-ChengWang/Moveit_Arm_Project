@@ -1,0 +1,9 @@
+<launch>
+    <!-- Node 1: koch_leader_follower -->
+    <node
+        pkg="koch_ros2_wrapper"
+        exec="koch_follower_control"
+        output="screen">
+        <param name="config_file" value="/home/hrc/koch_robot_arm/ros2_ws/src/koch_ros2_wrapper/config/two_follower.yaml" />
+    </node>
+</launch>

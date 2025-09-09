@@ -1,0 +1,1 @@
+/home/chengwsam/ros2_ws/src/build/koch_moveit_config/ament_cmake_environment_hooks/local_setup.bash

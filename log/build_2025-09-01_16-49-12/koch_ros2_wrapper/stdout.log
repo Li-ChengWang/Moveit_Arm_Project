@@ -1,0 +1,41 @@
+running develop
+running egg_info
+creating koch_ros2_wrapper.egg-info
+writing koch_ros2_wrapper.egg-info/PKG-INFO
+writing dependency_links to koch_ros2_wrapper.egg-info/dependency_links.txt
+writing entry points to koch_ros2_wrapper.egg-info/entry_points.txt
+writing requirements to koch_ros2_wrapper.egg-info/requires.txt
+writing top-level names to koch_ros2_wrapper.egg-info/top_level.txt
+writing manifest file 'koch_ros2_wrapper.egg-info/SOURCES.txt'
+reading manifest file 'koch_ros2_wrapper.egg-info/SOURCES.txt'
+writing manifest file 'koch_ros2_wrapper.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/python3.10/site-packages/koch-ros2-wrapper.egg-link (link to .)
+Installing koch_calibration script to /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/koch_ros2_wrapper
+Installing koch_follower_control script to /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/koch_ros2_wrapper
+Installing koch_leader_control script to /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/koch_ros2_wrapper
+Installing koch_leader_follower script to /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/koch_ros2_wrapper
+Installing koch_vr_control script to /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/koch_ros2_wrapper
+
+Installed /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper
+running symlink_data
+creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/ament_index
+creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/ament_index/resource_index
+creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/ament_index/resource_index/packages
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/resource/koch_ros2_wrapper -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/ament_index/resource_index/packages
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/package.xml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper
+creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/rs_top_launch.py -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/two_follower_launch.xml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/two_leader_launch.xml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/two_leader_follower_launch.xml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/rs_first_launch.py -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/rs_far_launch.py -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/two_leader_follower_launch.py -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/single_follower.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/two_leader.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/single_leader.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/two_follower.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/single_leader_follower.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/two_leader_follower.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config

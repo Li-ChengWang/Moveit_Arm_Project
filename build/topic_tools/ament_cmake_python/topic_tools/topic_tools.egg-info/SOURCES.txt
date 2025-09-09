@@ -1,0 +1,10 @@
+setup.cfg
+setup.py
+topic_tools/__init__.py
+topic_tools/relay_field.py
+topic_tools/transform.py
+topic_tools.egg-info/PKG-INFO
+topic_tools.egg-info/SOURCES.txt
+topic_tools.egg-info/dependency_links.txt
+topic_tools.egg-info/entry_points.txt
+topic_tools.egg-info/top_level.txt

@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: koch_simulation
+    relative_path: urdf/low_cost_robot.xacro
+  srdf:
+    relative_path: config/koch_v1_1.srdf
+  package_settings:
+    author_name: WangLiCheng
+    author_email: lichengwang0727@gmail.com
+    generated_timestamp: 1755748201
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity

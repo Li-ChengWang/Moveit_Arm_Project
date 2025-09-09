@@ -1,0 +1,43 @@
+[0.825s] Invoking command in '/home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper': PYTHONPATH=/home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/build --no-deps symlink_data
+[0.991s] running develop
+[1.091s] running egg_info
+[1.091s] creating koch_ros2_wrapper.egg-info
+[1.092s] writing koch_ros2_wrapper.egg-info/PKG-INFO
+[1.092s] writing dependency_links to koch_ros2_wrapper.egg-info/dependency_links.txt
+[1.092s] writing entry points to koch_ros2_wrapper.egg-info/entry_points.txt
+[1.092s] writing requirements to koch_ros2_wrapper.egg-info/requires.txt
+[1.092s] writing top-level names to koch_ros2_wrapper.egg-info/top_level.txt
+[1.092s] writing manifest file 'koch_ros2_wrapper.egg-info/SOURCES.txt'
+[1.093s] reading manifest file 'koch_ros2_wrapper.egg-info/SOURCES.txt'
+[1.093s] writing manifest file 'koch_ros2_wrapper.egg-info/SOURCES.txt'
+[1.094s] running build_ext
+[1.094s] Creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/python3.10/site-packages/koch-ros2-wrapper.egg-link (link to .)
+[1.095s] Installing koch_calibration script to /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/koch_ros2_wrapper
+[1.095s] Installing koch_follower_control script to /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/koch_ros2_wrapper
+[1.095s] Installing koch_leader_control script to /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/koch_ros2_wrapper
+[1.095s] Installing koch_leader_follower script to /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/koch_ros2_wrapper
+[1.095s] Installing koch_vr_control script to /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/koch_ros2_wrapper
+[1.095s] 
+[1.095s] Installed /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper
+[1.095s] running symlink_data
+[1.095s] creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/ament_index
+[1.095s] creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/ament_index/resource_index
+[1.095s] creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/ament_index/resource_index/packages
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/resource/koch_ros2_wrapper -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/ament_index/resource_index/packages
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/package.xml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper
+[1.096s] creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/rs_top_launch.py -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/two_follower_launch.xml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/two_leader_launch.xml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/two_leader_follower_launch.xml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/rs_first_launch.py -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/rs_far_launch.py -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/launch/two_leader_follower_launch.py -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/launch
+[1.096s] creating /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/single_follower.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/two_leader.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/single_leader.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+[1.096s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/two_follower.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+[1.097s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/single_leader_follower.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+[1.097s] symbolically linking /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/config/two_leader_follower.yaml -> /home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/share/koch_ros2_wrapper/config
+[1.114s] Invoked command in '/home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper' returned '0': PYTHONPATH=/home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/chengwsam/ros2_ws/src/install/koch_ros2_wrapper/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/chengwsam/ros2_ws/src/build/koch_ros2_wrapper/build --no-deps symlink_data

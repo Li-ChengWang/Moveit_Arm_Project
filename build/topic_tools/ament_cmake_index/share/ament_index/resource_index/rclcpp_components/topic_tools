@@ -1,0 +1,5 @@
+topic_tools::RelayNode;lib/librelay_node.so
+topic_tools::ThrottleNode;lib/libthrottle_node.so
+topic_tools::DropNode;lib/libdrop_node.so
+topic_tools::MuxNode;lib/libmux_node.so
+topic_tools::DelayNode;lib/libdelay_node.so

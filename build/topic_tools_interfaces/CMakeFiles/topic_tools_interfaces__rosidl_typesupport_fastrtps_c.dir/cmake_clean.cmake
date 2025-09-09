@@ -1,0 +1,25 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/topic_tools_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_add__type_support_c.cpp.o"
+  "CMakeFiles/topic_tools_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_add__type_support_c.cpp.o.d"
+  "CMakeFiles/topic_tools_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_delete__type_support_c.cpp.o"
+  "CMakeFiles/topic_tools_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_delete__type_support_c.cpp.o.d"
+  "CMakeFiles/topic_tools_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_list__type_support_c.cpp.o"
+  "CMakeFiles/topic_tools_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_list__type_support_c.cpp.o.d"
+  "CMakeFiles/topic_tools_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_select__type_support_c.cpp.o"
+  "CMakeFiles/topic_tools_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_select__type_support_c.cpp.o.d"
+  "libtopic_tools_interfaces__rosidl_typesupport_fastrtps_c.pdb"
+  "libtopic_tools_interfaces__rosidl_typesupport_fastrtps_c.so"
+  "rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_add__rosidl_typesupport_fastrtps_c.h"
+  "rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_add__type_support_c.cpp"
+  "rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_delete__rosidl_typesupport_fastrtps_c.h"
+  "rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_delete__type_support_c.cpp"
+  "rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_list__rosidl_typesupport_fastrtps_c.h"
+  "rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_list__type_support_c.cpp"
+  "rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_select__rosidl_typesupport_fastrtps_c.h"
+  "rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_select__type_support_c.cpp"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/topic_tools_interfaces__rosidl_typesupport_fastrtps_c.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

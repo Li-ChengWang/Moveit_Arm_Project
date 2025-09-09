@@ -1,0 +1,44 @@
+mediapipe_pose_publisher:
+  ros__parameters:
+    # RealSense 顏色/深度 topic 名稱
+    color_topic: "/camera/color/image_raw"
+    depth_topic: "/camera/aligned_depth_to_color/image_raw"
+    camera_info_topic: "/camera/color/camera_info"
+
+    # 深度單位比例（RealSense 16UC1(mm) → m）
+    depth_scale: 0.001
+
+    # TF 與座標框架
+    camera_frame: "camera_color_optical_frame"
+    base_frame: "base_link"
+
+    # 發佈的 Pose topic
+    target_pose_topic: "/target_pose"
+
+    # 取用的 MediaPipe 關鍵點（手部：8=食指指尖）
+    use_solution: "hands"     # 可選 "hands" 或 "pose"
+    landmark_index: 8
+
+    # 平滑&頻率
+    publish_rate_hz: 15.0
+    min_translation_delta: 0.01      # m
+    min_rotation_delta_deg: 3.0      # deg
+
+    # 姿態 orientation 設定（簡化：固定朝向）
+    fixed_orientation_xyzw: [0.0, 0.0, 0.0, 1.0]
+
+moveit_pose_follower:
+  ros__parameters:
+    target_pose_topic: "/target_pose"
+    group_name: "arm"             # 你的 MoveIt 末端操作群組
+    base_frame: "base_link"
+    end_effector_link: ""          # 若空字串，沿用 group 的 end effector
+    plan_execute_rate_hz: 5.0
+    planning_time: 1.5
+    position_tolerance: 0.01
+    orientation_tolerance: 0.05
+    goal_joint_tolerance: 0.005
+    max_velocity_scaling: 0.2
+    max_acceleration_scaling: 0.2
+    min_goal_translation_delta: 0.01
+    min_goal_rotation_delta_deg: 3.0

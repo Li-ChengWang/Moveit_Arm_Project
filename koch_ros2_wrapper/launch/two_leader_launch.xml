@@ -1,0 +1,22 @@
+<launch>
+    <!-- Node 1: koch_leader -->
+    <node
+        pkg="koch_ros2_wrapper"
+        exec="koch_leader_control"
+        output="screen">
+        <param name="config_file" value="/home/hrc/koch_robot_arm/ros2_ws/src/koch_ros2_wrapper/config/two_leader.yaml"/>
+    </node>
+    <!-- Node 2: Relay left joint states -->
+    <node
+        pkg="topic_tools"
+        exec="relay"
+        args="/left_leader/joint_states /left_follower/joint_states_control"
+        output="log"/>
+
+    <!-- Node 3: Relay right joint states -->
+    <node
+        pkg="topic_tools"
+        exec="relay"
+        args="/right_leader/joint_states /right_follower/joint_states_control"
+        output="log"/>
+</launch>
