@@ -13,6 +13,8 @@ from tf2_geometry_msgs import do_transform_pose
 
 # MediaPipe
 import mediapipe as mp
+mp_drawing = mp.solutions.drawing_utils
+mp_styles = mp.solutions.drawing_styles
 
 class MediaPipePosePublisher(Node):
     def __init__(self):
@@ -33,6 +35,9 @@ class MediaPipePosePublisher(Node):
                 ('min_translation_delta', 0.01),
                 ('min_rotation_delta_deg', 3.0),
                 ('fixed_orientation_xyzw', [0.0, 0.0, 0.0, 1.0]),
+                ('publish_debug_image', True),
+                ('debug_image_topic', '/mediapipe/annotated'),
+                ('draw_skeleton', True),
             ]
         )
 
@@ -49,6 +54,9 @@ class MediaPipePosePublisher(Node):
         self.min_translation_delta = self.get_parameter('min_translation_delta').get_parameter_value().double_value
         self.min_rotation_delta_deg = self.get_parameter('min_rotation_delta_deg').get_parameter_value().double_value
         self.fixed_orientation_xyzw = self.get_parameter('fixed_orientation_xyzw').get_parameter_value().double_array_value
+        self.publish_debug_image = self.get_parameter('publish_debug_image').get_parameter_value().bool_value
+        self.debug_image_topic = self.get_parameter('debug_image_topic').get_parameter_value().string_value
+        self.draw_skeleton = self.get_parameter('draw_skeleton').get_parameter_value().bool_value
 
         self.bridge = CvBridge()
         self.cam_info = None
@@ -59,7 +67,9 @@ class MediaPipePosePublisher(Node):
 
         # Publisher
         self.pub = self.create_publisher(PoseStamped, self.target_pose_topic, 10)
-
+        if self.publish_debug_image:
+            self.debug_pub = self.create_publisher(Image, self.debug_image_topic, 10)
+        
         # Message filters 同步
         self.color_sub = Subscriber(self, Image, self.color_topic)
         self.depth_sub = Subscriber(self, Image, self.depth_topic)
@@ -92,7 +102,7 @@ class MediaPipePosePublisher(Node):
 
         h, w, _ = color.shape
         rgb = cv2.cvtColor(color, cv2.COLOR_BGR2RGB)
-
+        annotated = color.copy() if self.publish_debug_image else None
         # 2) MediaPipe 偵測
         if self.use_solution == 'hands':
             res = self.mp_solution.process(rgb)
@@ -103,6 +113,14 @@ class MediaPipePosePublisher(Node):
                 return
             u = int(lm[self.landmark_index].x * w)
             v = int(lm[self.landmark_index].y * h)
+            if self.publish_debug_image and self.draw_skeleton:
+                mp_drawing.draw_landmarks(
+                    annotated,
+                    hand_landmarks,
+                    mp.solutions.hands.HAND_CONNECTIONS,
+                    mp_styles.get_default_hand_landmarks_style(),
+                    mp_styles.get_default_hand_connections_style(),
+            )
         else:  # pose（全身）
             res = self.mp_solution.process(rgb)
             if not res.pose_landmarks:
@@ -112,6 +130,13 @@ class MediaPipePosePublisher(Node):
                 return
             u = int(lm[self.landmark_index].x * w)
             v = int(lm[self.landmark_index].y * h)
+            if self.publish_debug_image and self.draw_skeleton:
+                mp_drawing.draw_landmarks(
+                    annotated,
+                    pose_landmarks,
+                    mp.solutions.pose.POSE_CONNECTIONS,
+                    landmark_drawing_spec=mp_styles.get_default_pose_landmarks_style(),
+                )
 
         # 邊界檢查
         if u < 0 or u >= w or v < 0 or v >= h:
@@ -148,6 +173,9 @@ class MediaPipePosePublisher(Node):
         pose_cam.pose.orientation.z = float(qz)
         pose_cam.pose.orientation.w = float(qw)
 
+        if self.publish_debug_image:
+            cv2.circle(annotated, (u, v), 6, (0, 255, 255), -1)
+
         # 4) 轉到 base_frame
         try:
             tf = self.tf_buffer.lookup_transform(
@@ -167,6 +195,8 @@ class MediaPipePosePublisher(Node):
         pose_base.header.stamp = self.get_clock().now().to_msg()
         pose_base.header.frame_id = self.base_frame
         self.pub.publish(pose_base)
+        if self.publish_debug_image:
+            self.debug_pub.publish(self.bridge.cv2_to_imgmsg(annotated, encoding='bgr8'))
 
     @staticmethod
     def _pose_delta(a, b):

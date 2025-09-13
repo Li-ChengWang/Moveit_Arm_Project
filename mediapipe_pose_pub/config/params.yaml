@@ -1,9 +1,9 @@
 mediapipe_pose_publisher:
   ros__parameters:
     # RealSense 顏色/深度 topic 名稱
-    color_topic: "/camera/color/image_raw"
-    depth_topic: "/camera/aligned_depth_to_color/image_raw"
-    camera_info_topic: "/camera/color/camera_info"
+    color_topic: "/camera/camera/color/image_raw"
+    depth_topic: "/camera/camera/aligned_depth_to_color/image_raw"
+    camera_info_topic: "/camera/camera/color/camera_info"
 
     # 深度單位比例（RealSense 16UC1(mm) → m）
     depth_scale: 0.001
@@ -26,6 +26,10 @@ mediapipe_pose_publisher:
 
     # 姿態 orientation 設定（簡化：固定朝向）
     fixed_orientation_xyzw: [0.0, 0.0, 0.0, 1.0]
+
+    publish_debug_image: true
+    debug_image_topic: "/mediapipe/annotated"
+    draw_skeleton: true
 
 moveit_pose_follower:
   ros__parameters:

@@ -10,7 +10,11 @@ setup(
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', ['launch/mediapipe_moveit_follow.launch.py']),
-        ('share/' + package_name + '/config', ['config/params.yaml','config/moveit_py_wildcard.yaml',]),
+        ('share/' + package_name + '/config', [
+            'config/params.yaml',
+            'config/moveit_py_params.yaml',
+            'config/moveit_py_params_node.yaml',
+        ]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

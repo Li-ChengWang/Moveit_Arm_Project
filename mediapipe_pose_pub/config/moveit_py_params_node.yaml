@@ -1,0 +1,13 @@
+/**:
+  ros__parameters:
+    planning_pipelines.pipeline_names: ["ompl"]
+    plan_request_params.planning_pipeline: "ompl"
+    ompl.planning_plugins: ["ompl_interface/OMPLPlanner"]
+    ompl.request_adapters:
+      - default_planning_request_adapters/ResolveConstraintFrames
+      - default_planning_request_adapters/ValidateWorkspaceBounds
+      - default_planning_request_adapters/CheckStartStateBounds
+      - default_planning_request_adapters/CheckStartStateCollision
+    ompl.start_state_max_bounds_error: 0.1
+    # 控制器管理外掛（與 move_group 使用的一致）
+    moveit_controller_manager: "moveit_ros_control_interface/Ros2ControlManager"
