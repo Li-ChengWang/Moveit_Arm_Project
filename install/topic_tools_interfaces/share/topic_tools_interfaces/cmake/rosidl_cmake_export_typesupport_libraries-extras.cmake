@@ -1,1 +1,0 @@
-/home/chengwsam/ros2_ws/src/build/topic_tools_interfaces/rosidl_cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake

@@ -1,1 +1,0 @@
-/home/chengwsam/ros2_ws/src/build/topic_tools_interfaces/rosidl_generator_c/topic_tools_interfaces/srv/mux_select.h

@@ -1,1 +1,0 @@
-/home/chengwsam/ros2_ws/src/hand_teleop_demo/launch/cam_static_tf.launch.py

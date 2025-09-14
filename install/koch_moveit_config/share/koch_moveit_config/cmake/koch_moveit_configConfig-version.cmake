@@ -1,1 +1,0 @@
-/home/chengwsam/ros2_ws/src/build/koch_moveit_config/ament_cmake_core/koch_moveit_configConfig-version.cmake

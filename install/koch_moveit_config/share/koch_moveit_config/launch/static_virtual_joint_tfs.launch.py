@@ -1,1 +1,0 @@
-/home/chengwsam/ros2_ws/src/koch_moveit_config/launch/static_virtual_joint_tfs.launch.py

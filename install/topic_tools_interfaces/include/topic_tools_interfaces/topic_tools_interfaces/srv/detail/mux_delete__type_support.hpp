@@ -1,1 +1,0 @@
-/home/chengwsam/ros2_ws/src/build/topic_tools_interfaces/rosidl_generator_cpp/topic_tools_interfaces/srv/detail/mux_delete__type_support.hpp

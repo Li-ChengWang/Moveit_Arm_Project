@@ -1,1 +1,0 @@
-/home/chengwsam/ros2_ws/src/koch_simulation/launch/display.launch.py

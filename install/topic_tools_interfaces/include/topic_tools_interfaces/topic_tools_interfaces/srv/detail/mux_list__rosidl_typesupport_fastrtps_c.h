@@ -1,1 +1,0 @@
-/home/chengwsam/ros2_ws/src/build/topic_tools_interfaces/rosidl_typesupport_fastrtps_c/topic_tools_interfaces/srv/detail/mux_list__rosidl_typesupport_fastrtps_c.h

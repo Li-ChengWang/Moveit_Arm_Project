@@ -1,1 +1,0 @@
-/home/chengwsam/ros2_ws/src/build/topic_tools/ament_cmake_python/topic_tools/topic_tools.egg-info/SOURCES.txt

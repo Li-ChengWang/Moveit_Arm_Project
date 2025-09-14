@@ -1,4 +1,0 @@
-source;share/koch_moveit_config/local_setup.bash
-source;share/koch_moveit_config/local_setup.dsv
-source;share/koch_moveit_config/local_setup.sh
-source;share/koch_moveit_config/local_setup.zsh
