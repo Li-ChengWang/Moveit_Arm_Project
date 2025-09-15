@@ -9,7 +9,7 @@ import cv2
 import math
 
 from tf2_ros import Buffer, TransformListener
-from tf2_geometry_msgs import do_transform_pose
+from tf2_geometry_msgs import do_transform_pose_stamped
 
 # MediaPipe
 import mediapipe as mp
@@ -108,29 +108,32 @@ class MediaPipePosePublisher(Node):
             res = self.mp_solution.process(rgb)
             if not res.multi_hand_landmarks:
                 return
-            lm = res.multi_hand_landmarks[0].landmark
+            hand_landmarks = res.multi_hand_landmarks[0]
+            lm = hand_landmarks.landmark
             if self.landmark_index >= len(lm):
                 return
             u = int(lm[self.landmark_index].x * w)
             v = int(lm[self.landmark_index].y * h)
-            if self.publish_debug_image and self.draw_skeleton:
+            if self.publish_debug_image and self.draw_skeleton and annotated is not None:
                 mp_drawing.draw_landmarks(
                     annotated,
                     hand_landmarks,
                     mp.solutions.hands.HAND_CONNECTIONS,
                     mp_styles.get_default_hand_landmarks_style(),
                     mp_styles.get_default_hand_connections_style(),
-            )
+                )
+
         else:  # pose（全身）
             res = self.mp_solution.process(rgb)
             if not res.pose_landmarks:
                 return
-            lm = res.pose_landmarks.landmark
+            pose_landmarks = res.pose_landmarks
+            lm = pose_landmarks.landmark
             if self.landmark_index >= len(lm):
                 return
             u = int(lm[self.landmark_index].x * w)
             v = int(lm[self.landmark_index].y * h)
-            if self.publish_debug_image and self.draw_skeleton:
+            if self.publish_debug_image and self.draw_skeleton and annotated is not None:
                 mp_drawing.draw_landmarks(
                     annotated,
                     pose_landmarks,
@@ -173,16 +176,16 @@ class MediaPipePosePublisher(Node):
         pose_cam.pose.orientation.z = float(qz)
         pose_cam.pose.orientation.w = float(qw)
 
-        if self.publish_debug_image:
+        if self.publish_debug_image and annotated is not None:
             cv2.circle(annotated, (u, v), 6, (0, 255, 255), -1)
 
         # 4) 轉到 base_frame
         try:
             tf = self.tf_buffer.lookup_transform(
                 self.base_frame, self.camera_frame, rclpy.time.Time())
-            pose_base = do_transform_pose(pose_cam, tf)
+            pose_base = do_transform_pose_stamped(pose_cam, tf)
         except Exception as e:
-            self.get_logger().throttle_log(2000, f"TF not ready from {self.camera_frame} to {self.base_frame}: {e}")
+            self.get_logger().warn(2000, f"TF not ready from {self.camera_frame} to {self.base_frame}: {e}")
             return
 
         # 5) 去抖（避免太頻繁觸發）
@@ -195,7 +198,7 @@ class MediaPipePosePublisher(Node):
         pose_base.header.stamp = self.get_clock().now().to_msg()
         pose_base.header.frame_id = self.base_frame
         self.pub.publish(pose_base)
-        if self.publish_debug_image:
+        if self.publish_debug_image and annotated is not None:
             self.debug_pub.publish(self.bridge.cv2_to_imgmsg(annotated, encoding='bgr8'))
 
     @staticmethod

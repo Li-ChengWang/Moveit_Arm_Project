@@ -11,6 +11,7 @@ from geometry_msgs.msg import PoseStamped
 
 # 新版 MoveIt 2 Python API
 from moveit.planning import MoveItPy
+from moveit.planning import PlanRequestParameters
 
 from rcl_interfaces.srv import GetParameters, SetParameters
 from rcl_interfaces.msg import (
@@ -174,8 +175,19 @@ class MoveItPoseFollower(Node):
                 self.get_logger().error(f'set_goal_state 失敗：{e}')
                 return
 
-            # 規劃
-            plan_result = self.arm.plan()
+            # 規劃（顯式傳入參數，避免某些 Humble 綁定無法匹配 0 參數 overload）
+            params = PlanRequestParameters()
+            try:
+                params.planning_time = self.get_parameter('planning_time').get_parameter_value().double_value
+            except Exception:
+                pass
+            try:
+                params.max_velocity_scaling_factor = self.get_parameter('max_velocity_scaling').get_parameter_value().double_value
+                params.max_acceleration_scaling_factor = self.get_parameter('max_acceleration_scaling').get_parameter_value().double_value
+            except Exception:
+                pass
+
+            plan_result = self.arm.plan(params)
             if not plan_result or not plan_result.trajectory:
                 self.get_logger().warn('規劃失敗（plan_result 空）')
                 return

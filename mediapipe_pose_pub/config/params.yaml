@@ -36,7 +36,7 @@ moveit_pose_follower:
     target_pose_topic: "/target_pose"
     group_name: "arm"             # 你的 MoveIt 末端操作群組
     base_frame: "base_link"
-    end_effector_link: ""          # 若空字串，沿用 group 的 end effector
+    end_effector_link: "gripper_static_1"          # 若空字串，沿用 group 的 end effector
     plan_execute_rate_hz: 5.0
     planning_time: 1.5
     position_tolerance: 0.01
