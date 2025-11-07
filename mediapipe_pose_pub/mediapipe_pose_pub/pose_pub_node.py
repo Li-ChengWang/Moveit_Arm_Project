@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import PoseStamped
 from cv_bridge import CvBridge
@@ -66,9 +67,10 @@ class MediaPipePosePublisher(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
         # Publisher
-        self.pub = self.create_publisher(PoseStamped, self.target_pose_topic, 10)
+        self.pub = self.create_publisher(PoseStamped, self.target_pose_topic, qos_profile_sensor_data)
+        # debug 影像同理
         if self.publish_debug_image:
-            self.debug_pub = self.create_publisher(Image, self.debug_image_topic, 10)
+            self.debug_pub = self.create_publisher(Image, self.debug_image_topic, qos_profile_sensor_data)
         
         # Message filters 同步
         self.color_sub = Subscriber(self, Image, self.color_topic)
@@ -185,7 +187,7 @@ class MediaPipePosePublisher(Node):
                 self.base_frame, self.camera_frame, rclpy.time.Time())
             pose_base = do_transform_pose_stamped(pose_cam, tf)
         except Exception as e:
-            self.get_logger().warn(2000, f"TF not ready from {self.camera_frame} to {self.base_frame}: {e}")
+            self.get_logger().warn(f"TF not ready from {self.camera_frame} to {self.base_frame}: {e}")
             return
 
         # 5) 去抖（避免太頻繁觸發）

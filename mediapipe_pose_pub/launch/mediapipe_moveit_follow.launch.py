@@ -6,6 +6,7 @@ from launch.actions import IncludeLaunchDescription, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
+from moveit_configs_utils import MoveItConfigsBuilder
 import os
 
 def generate_launch_description():
@@ -14,7 +15,7 @@ def generate_launch_description():
 
     params_main = os.path.join(share, 'config', 'params.yaml')
 
-    # 1) RealSense
+    # 1) RealSense（維持你原本設定）
     realsense_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('realsense2_camera'),
@@ -27,7 +28,7 @@ def generate_launch_description():
         }.items()
     )
 
-    # 2) 靜態 TF
+    # 2) 靜態 TF（維持你原本設定）
     base_to_cam = Node(
         package='tf2_ros', executable='static_transform_publisher',
         name='static_base_to_cam',
@@ -41,14 +42,14 @@ def generate_launch_description():
         output='screen'
     )
 
-    # 3) MoveIt bringup
+    # 3) MoveIt bringup（維持你原本設定）
     moveit_demo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('koch_moveit_config'),
                          'launch', 'demo_ros2_control.launch.py'))
     )
 
-    # 4) MediaPipe 節點
+    # 4) Mediapipe publisher（維持你原本設定與參數）
     mp_node = Node(
         package=pkg, executable='mediapipe_pose_publisher',
         name='mediapipe_pose_publisher',
@@ -56,13 +57,27 @@ def generate_launch_description():
         output='screen'
     )
 
-    # 5) 跟隨節點（把兩個 params 都塞進去）
-    follower = Node(
-        package=pkg, executable='moveit_pose_follower',
-        name='moveit_pose_follower',
-        parameters=[params_main],
-        output='screen'
+    # 5) **新方法**：C++ MoveIt driver（取代舊的 moveit_py follower）
+    cpp_driver = Node(
+        package='mp_to_moveit_driver',
+        executable='mp_to_moveit_driver_node',
+        name='mp_to_moveit',
+        output='screen',
+        parameters=[{
+            'group_name': 'arm',
+            'end_effector_link': 'gripper_static_1',   # 不確定可留空 ""
+            'planning_frame': 'base_link',
+            'target_pose_topic': '/target_pose',
+            'min_goal_translation_delta': 0.005,
+            'min_goal_rotation_delta_deg': 3.0,
+            'planning_time': 1.5,
+            'max_velocity_scaling': 0.2,
+            'max_acceleration_scaling': 0.2,
+            'allow_execute': False,                    # 先只規劃，安全
+        }]
     )
+
+    # （選配）影像監看
     image_view = Node(
         package='rqt_image_view',
         executable='rqt_image_view',
@@ -71,12 +86,12 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        LogInfo(msg='🚀 Launching as Normal ROS Node'),
+        LogInfo(msg='🚀 Launching Mediapipe + MoveIt (C++ driver)'),
         realsense_launch,
         base_to_cam,
         cam_to_optical,
-        moveit_demo,     # 先起 /move_group
+        moveit_demo,     # 先起 /move_group 與 robot_description
         mp_node,
-        follower,        # 再起 follower（此時 /moveit_py 有 pipeline 參數）
-        image_view, 
+        cpp_driver,      # 用 C++ driver 取代舊 follower
+        image_view,
     ])
