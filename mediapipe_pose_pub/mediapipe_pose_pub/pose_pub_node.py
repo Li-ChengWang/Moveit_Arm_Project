@@ -148,15 +148,27 @@ class MediaPipePosePublisher(Node):
             return
 
         # 3) 取深度，轉 3D（camera frame）
-        z = depth[v, u]
-        if z == 0 or np.isnan(z):
+        z_raw = depth[v, u]
+
+        # 有些型態（float32）np.isnan 才有意義，uint16 就看是不是 0 就好
+        if isinstance(z_raw, np.floating) and np.isnan(z_raw):
+            self.get_logger().warn(f"[DEPTH] NaN depth at u={u}, v={v}, skip")
+            return
+        if isinstance(z_raw, (np.integer, int)) and z_raw == 0:
+            self.get_logger().warn(f"[DEPTH] zero depth at u={u}, v={v}, skip")
             return
 
         # depth 單位換算
         if depth.dtype == np.uint16:
-            z = float(z) * self.depth_scale  # mm→m
+            z = float(z_raw) * self.depth_scale  # mm→m
         else:
-            z = float(z)  # 已是 m（32FC1）
+            z = float(z_raw)  # 已是 m（32FC1）
+
+        # LOG #1：看手部對應的深度到底是幾公尺
+        self.get_logger().warn(
+            f"[DEPTH] u={u} v={v} raw={float(z_raw)} dtype={depth.dtype} z_m={z:.3f}"
+        )
+
 
         # Pinhole 反投影
         fx = self.cam_info.k[0]; fy = self.cam_info.k[4]
@@ -189,6 +201,14 @@ class MediaPipePosePublisher(Node):
         except Exception as e:
             self.get_logger().warn(f"TF not ready from {self.camera_frame} to {self.base_frame}: {e}")
             return
+            
+        bx = pose_base.pose.position.x
+        by = pose_base.pose.position.y
+        bz = pose_base.pose.position.z
+        dist = math.sqrt(bx*bx + by*by + bz*bz)
+        self.get_logger().warn(
+            f"[BASE] frame={self.base_frame} p=({bx:.3f}, {by:.3f}, {bz:.3f}) dist={dist:.3f} m"
+        )
 
         # 5) 去抖（避免太頻繁觸發）
         if self.last_pose_base is not None:
