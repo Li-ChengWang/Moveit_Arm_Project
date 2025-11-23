@@ -165,16 +165,32 @@ class MediaPipePosePublisher(Node):
             z = float(z_raw)  # 已是 m（32FC1）
 
         # LOG #1：看手部對應的深度到底是幾公尺
-        self.get_logger().warn(
-            f"[DEPTH] u={u} v={v} raw={float(z_raw)} dtype={depth.dtype} z_m={z:.3f}"
-        )
+        #self.get_logger().warn(
+        #    f"[DEPTH] u={u} v={v} raw={float(z_raw)} dtype={depth.dtype} z_m={z:.3f}"
+        #)
 
-
-        # Pinhole 反投影
+        # Pinhole 反投影（camera_color_optical_frame 座標系）
         fx = self.cam_info.k[0]; fy = self.cam_info.k[4]
         cx = self.cam_info.k[2]; cy = self.cam_info.k[5]
         x = (u - cx) * z / fx
         y = (v - cy) * z / fy
+
+        # ====== 控制盒子（舒服空間）濾波：在 camera frame 下 ======
+        # 這裡先寫死一組範圍，之後你也可以改成參數：
+        #  - z：0.40 ~ 0.65 m 之間（距離相機的深度）
+        #  - x, y：在鏡頭前中間 +/- 10 cm
+        if not (0.40 <= z <= 0.65 and -0.50 <= x <= 0.50 and -0.50 <= y <= 0.50):
+            # 手不在「控制盒子」裡 → 視為暫停控制
+            # （不 publish /target_pose，機械手臂維持上一個目標）
+            # 你可以把這行 log 註解掉避免太吵
+            #self.get_logger().warn(
+            #    f"[SKIP][BOX] cam_xyz=({x:.3f},{y:.3f},{z:.3f}) out of control box"
+            #)
+            return
+        # ======================================================
+
+
+        
 
         pose_cam = PoseStamped()
         pose_cam.header = color_msg.header
@@ -206,9 +222,9 @@ class MediaPipePosePublisher(Node):
         by = pose_base.pose.position.y
         bz = pose_base.pose.position.z
         dist = math.sqrt(bx*bx + by*by + bz*bz)
-        self.get_logger().warn(
-            f"[BASE] frame={self.base_frame} p=({bx:.3f}, {by:.3f}, {bz:.3f}) dist={dist:.3f} m"
-        )
+        #self.get_logger().warn(
+        #    f"[BASE] frame={self.base_frame} p=({bx:.3f}, {by:.3f}, {bz:.3f}) dist={dist:.3f} m"
+        #)
 
         # 5) 去抖（避免太頻繁觸發）
         if self.last_pose_base is not None:

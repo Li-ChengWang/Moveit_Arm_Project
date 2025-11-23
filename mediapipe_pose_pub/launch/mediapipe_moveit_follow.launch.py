@@ -84,7 +84,7 @@ def generate_launch_description():
                 'planning_time': 1.5,
                 'max_velocity_scaling': 0.2,
                 'max_acceleration_scaling': 0.2,
-                'allow_execute': False,         # 先規劃不執行
+                'allow_execute': True,         # 先規劃不執行
                 'min_goal_translation_delta': 0.005,
                 'min_goal_rotation_delta_deg': 3.0,
 
