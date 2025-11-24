@@ -175,6 +175,13 @@ class MediaPipePosePublisher(Node):
         x = (u - cx) * z / fx
         y = (v - cy) * z / fy
 
+
+
+        self.get_logger().warn(
+            f"[CAMERA] frame={self.camera_frame} p=({x:.3f}, {y:.3f}, {z:.3f}) m"
+        )
+  
+
         # ====== 控制盒子（舒服空間）濾波：在 camera frame 下 ======
         # 這裡先寫死一組範圍，之後你也可以改成參數：
         #  - z：0.40 ~ 0.65 m 之間（距離相機的深度）

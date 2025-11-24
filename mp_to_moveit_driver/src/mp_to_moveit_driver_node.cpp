@@ -66,7 +66,7 @@ MpToMoveIt::MpToMoveIt()
   eef_link_      = this->declare_parameter<std::string>("end_effector_link", "");
   plan_frame_    = this->declare_parameter<std::string>("planning_frame", "base_link");
   target_topic_  = this->declare_parameter<std::string>("target_pose_topic", "/target_pose");
-  min_trans_     = this->declare_parameter<double>("min_goal_translation_delta", 0.005);
+  min_trans_     = this->declare_parameter<double>("min_goal_translation_delta", 0.01);
   // 旋轉去抖參數保留，但不再使用（position-only 不看旋轉）
   min_rot_deg_   = this->declare_parameter<double>("min_goal_rotation_delta_deg", 3.0);
   planning_time_ = this->declare_parameter<double>("planning_time", 1.5);
@@ -76,9 +76,9 @@ MpToMoveIt::MpToMoveIt()
   pos_tol_       = this->declare_parameter<double>("goal_position_tolerance", 0.05); // 位置容忍度
 
   // Teleop 相關參數
-  scale_x_        = this->declare_parameter<double>("teleop_scale_x", 0.5);
-  scale_y_        = this->declare_parameter<double>("teleop_scale_y", 0.5); // 先關掉 Y 軸控制
-  scale_z_        = this->declare_parameter<double>("teleop_scale_z", 0.5);
+  scale_x_        = this->declare_parameter<double>("teleop_scale_x", 0.8);
+  scale_y_        = this->declare_parameter<double>("teleop_scale_y", 0.8); // 先關掉 Y 軸控制
+  scale_z_        = this->declare_parameter<double>("teleop_scale_z", 0.8);
   max_robot_dist_ = this->declare_parameter<double>("max_robot_distance", 0.7); // 與你原本的 0.7m 一致
 
   // TF
@@ -112,7 +112,7 @@ MpToMoveIt::MpToMoveIt()
                   group_name_.c_str(),
                   eef_link_.empty() ? "<group tip>" : eef_link_.c_str(),
                   plan_frame_.c_str());
-      RCLCPP_INFO(this->get_logger(), "EEF from MoveGroup: %s",
+      RCLCPP_INFO(this->get_logger(), "E_trans_EF from MoveGroup: %s",
                   move_group_->getEndEffectorLink().c_str());
       RCLCPP_INFO(this->get_logger(), "Pose reference frame: %s",
                   move_group_->getPoseReferenceFrame().c_str());
@@ -128,8 +128,36 @@ MpToMoveIt::MpToMoveIt()
               "Driver ready. group=%s, topic=%s, plan_frame=%s",
               group_name_.c_str(), target_topic_.c_str(), plan_frame_.c_str());
 }
+  // ===================== 工具函式 =====================
 
-// ===================== callback =====================
+  constexpr double X_MIN = -0.30;
+  constexpr double X_MAX = 0.30;
+  constexpr double Y_MIN = 0.10;
+  constexpr double Y_MAX =  0.25;
+  constexpr double Z_MIN = 0.05;
+  constexpr double Z_MAX = 0.40;
+
+  inline double clamp(
+    double v,
+    double v_min,
+    double v_max,
+    const rclcpp::Logger & logger)
+  {
+    if (v < v_min) {
+      RCLCPP_WARN(
+        logger,"[CLAMP] value %.3f below min %.3f, clamped.",v, v_min);
+      return v_min;
+    }
+    if (v > v_max) {
+      RCLCPP_WARN(
+        logger,"[CLAMP] value %.3f above max %.3f, clamped.",v, v_max);
+      return v_max;
+    }
+    return v;
+  }
+
+
+  // ===================== callback =====================
 
 void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
 {
@@ -209,6 +237,8 @@ void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
   double dy_hand = hand_cur.y - hand_ref_.y;
   double dz_hand = hand_cur.z - hand_ref_.z;
 
+  hand_ref_ = hand_cur; // 更新參考點（類似積分器）
+
   // 把 Δhand 映射到 Δrobot（可縮放）
   double dx_robot = scale_x_ * dx_hand;
   double dy_robot = scale_y_ * dy_hand;
@@ -219,6 +249,17 @@ void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
   P_target.x = gripper_ref_pose_.position.x + dx_robot;
   P_target.y = gripper_ref_pose_.position.y + dy_robot;
   P_target.z = gripper_ref_pose_.position.z + dz_robot;
+
+
+
+  P_target.x = clamp(P_target.x, X_MIN, X_MAX, this->get_logger());
+  P_target.y = clamp(P_target.y, Y_MIN, Y_MAX, this->get_logger());
+  P_target.z = clamp(P_target.z, Z_MIN, Z_MAX, this->get_logger());
+
+  gripper_ref_pose_.position = P_target; // 更新參考點（類似積分器）
+
+
+
 
   // 檢查機械手臂目標點離 base_link 的距離
   auto robot_dist = std::sqrt(
@@ -240,8 +281,9 @@ void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
   if (has_prev_) {
     const auto& p  = P_target;
     const auto& pp = prev_.pose.position;
-    const double dtrans = std::hypot(std::hypot(p.x-pp.x, p.y-pp.y), p.z-pp.z);
-    if (dtrans < min_trans_) {
+    if (p.x-pp.x < min_trans_ && 
+        p.y-pp.y < min_trans_ &&
+        p.z-pp.z < min_trans_) {
       // 變化太小就不規劃
       return;
     }
