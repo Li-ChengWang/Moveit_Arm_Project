@@ -16,7 +16,7 @@ class KochROSWrapper(Node):
         self.get_logger().info('\033[93mMotor Controller Node started\033[0m')
 
         # Declare the parameter for the config file path
-        self.declare_parameter('config_file', '/home/hrc/koch_robot_arm/ros2_ws/src/koch_ros2_wrapper/config/single_follower.yaml')
+        self.declare_parameter('config_file', '/home/ros2_ws/src/koch_ros2_wrapper/config/single_follower.yaml')
         config_file_path = self.get_parameter('config_file').get_parameter_value().string_value
 
         # Load configuration from the specified YAML file

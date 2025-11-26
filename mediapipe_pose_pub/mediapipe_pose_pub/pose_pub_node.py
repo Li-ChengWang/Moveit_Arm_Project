@@ -105,6 +105,8 @@ class MediaPipePosePublisher(Node):
         h, w, _ = color.shape
         rgb = cv2.cvtColor(color, cv2.COLOR_BGR2RGB)
         annotated = color.copy() if self.publish_debug_image else None
+
+        is_pinched = False
         # 2) MediaPipe 偵測
         if self.use_solution == 'hands':
             res = self.mp_solution.process(rgb)
@@ -112,6 +114,18 @@ class MediaPipePosePublisher(Node):
                 return
             hand_landmarks = res.multi_hand_landmarks[0]
             lm = hand_landmarks.landmark
+
+            # ====== [NEW 2] 加入捏合計算邏輯 ======
+            # 取得大拇指(4) 與 食指(8)
+            thumb = lm[4]
+            index = lm[8]
+            # 計算距離 (使用正規化座標即可，不用轉 pixel)
+            # 0.05 是一個經驗值，大約是手掌寬度的 5%
+            dist_pinch = math.sqrt((thumb.x - index.x)**2 + (thumb.y - index.y)**2)
+            if dist_pinch < 0.05:
+                is_pinched = True
+            # ====================================
+
             if self.landmark_index >= len(lm):
                 return
             u = int(lm[self.landmark_index].x * w)
@@ -226,6 +240,16 @@ class MediaPipePosePublisher(Node):
             self.get_logger().warn(f"TF not ready from {self.camera_frame} to {self.base_frame}: {e}")
             return
             
+        # ====== [NEW 3] 強制覆寫 Orientation 來傳遞夾爪訊號 ======
+        # 注意：一定要在 do_transform 之後做，不然數值會被 TF 旋轉混淆
+        pose_base.pose.orientation.x = 0.0
+        pose_base.pose.orientation.y = 0.0
+        pose_base.pose.orientation.z = 0.0
+        # 如果捏合 (True) -> w=1.0 (代表 Close)
+        # 如果張開 (False) -> w=0.0 (代表 Open)
+        pose_base.pose.orientation.w = 1.0 if is_pinched else 0.0
+        # =======================================================
+
         bx = pose_base.pose.position.x
         by = pose_base.pose.position.y
         bz = pose_base.pose.position.z
