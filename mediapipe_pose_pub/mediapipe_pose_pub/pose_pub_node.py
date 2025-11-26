@@ -31,7 +31,7 @@ class MediaPipePosePublisher(Node):
                 ('base_frame', 'base_link'),
                 ('target_pose_topic', '/target_pose'),
                 ('use_solution', 'hands'),   # 'hands' or 'pose'
-                ('landmark_index', 8),
+                ('landmark_index', 0),
                 ('publish_rate_hz', 15.0),
                 ('min_translation_delta', 0.01),
                 ('min_rotation_delta_deg', 3.0),
@@ -175,25 +175,26 @@ class MediaPipePosePublisher(Node):
         x = (u - cx) * z / fx
         y = (v - cy) * z / fy
 
+    
 
+        #self.get_logger().warn(
+        #    f"[CAMERA] frame={self.camera_frame} p=({x:.3f}, {y:.3f}, {z:.3f}) m"
+        #)
 
-        self.get_logger().warn(
-            f"[CAMERA] frame={self.camera_frame} p=({x:.3f}, {y:.3f}, {z:.3f}) m"
-        )
   
 
         # ====== 控制盒子（舒服空間）濾波：在 camera frame 下 ======
         # 這裡先寫死一組範圍，之後你也可以改成參數：
         #  - z：0.40 ~ 0.65 m 之間（距離相機的深度）
         #  - x, y：在鏡頭前中間 +/- 10 cm
-        if not (0.40 <= z <= 0.65 and -0.50 <= x <= 0.50 and -0.50 <= y <= 0.50):
+        #if not (0.40 <= z <= 0.65 and -0.50 <= x <= 0.50 and -0.50 <= y <= 0.50):
             # 手不在「控制盒子」裡 → 視為暫停控制
             # （不 publish /target_pose，機械手臂維持上一個目標）
             # 你可以把這行 log 註解掉避免太吵
             #self.get_logger().warn(
             #    f"[SKIP][BOX] cam_xyz=({x:.3f},{y:.3f},{z:.3f}) out of control box"
             #)
-            return
+        #   return
         # ======================================================
 
 

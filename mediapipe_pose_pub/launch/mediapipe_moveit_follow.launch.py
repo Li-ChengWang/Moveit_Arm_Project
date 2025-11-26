@@ -42,7 +42,7 @@ def generate_launch_description():
     base_to_cam = Node(
         package='tf2_ros', executable='static_transform_publisher',
         name='static_base_to_cam',
-        arguments=['0.30','0.00','0.50','0','0','0','base_link','camera_link'],
+        arguments=['0.00', '0.80', '0', '-1.5708', '0', '0', 'base_link', 'camera_link'],
         output='screen'
     )
     cam_to_optical = Node(
@@ -75,6 +75,9 @@ def generate_launch_description():
         output='screen',
         parameters=[
             moveit_config.to_dict(),            # ★ 關鍵：提供 robot_description(_semantic)
+            {
+                'use_sim_time': False,
+            },
             {
                 'group_name': 'arm',
                 # 若 driver 有需要再加，沒有就先不要塞錯鍵

@@ -7,6 +7,8 @@
 // MoveIt
 #include <moveit/move_group_interface/move_group_interface.hpp>
 #include <moveit/utils/moveit_error_code.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <trajectory_msgs/msg/joint_trajectory.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -45,16 +47,148 @@ private:
   geometry_msgs::msg::PoseStamped prev_;
   bool has_prev_{false};
 
+  bool control_active_ = false;       // 是否已經開始控制
+  rclcpp::Time sync_start_time_;      //用來計算手停住的時間
+  bool is_syncing_ = false;           // 是否正在倒數計時
+
+ /* 
   // Teleop 相關
   bool calibrated_{false};
   geometry_msgs::msg::Point hand_ref_;          // 手的參考點（base_link）
   geometry_msgs::msg::Pose gripper_ref_pose_;   // 機械手臂 EEF 初始 Pose（base_link）
 
+
   // 縮放比例：Δhand → Δrobot
   double scale_x_, scale_y_, scale_z_;
+*/
+
   // 限制機械手臂「目標點」的最大距離（安全球殼半徑）
   double max_robot_dist_;
+
+  
+  // joint_state 監控
+  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
+  rclcpp::Time last_joint_state_stamp_;
+  bool has_joint_state_{false};
+
+  void jointStateCb(const sensor_msgs::msg::JointState::SharedPtr msg);
+  bool waitForRecentJointState(double timeout_sec);
+
 };
+
+/*
+class MpToMoveItDriver : public rclcpp::Node
+{
+public:
+  MpToMoveItDriver(const rclcpp::NodeOptions & options)
+  : Node("mp_to_moveit_driver", options)
+  , move_group_(shared_from_this(), "arm")  // 群組名稱自己改
+  {
+    js_control_pub_ = this->create_publisher<sensor_msgs::msg::JointState>(
+      "/left_follower/joint_states_control", 10);
+
+    // MoveIt joint name -> follower joint name
+    moveit_to_follower_ = {
+      {"joint1",  "shoulder_pan"},
+      {"joint2", "shoulder_lift"},
+      {"joint3",    "elbow_flex"},
+      {"joint4",    "wrist_flex"},
+      {"joint5",    "wrist_roll"},
+      // 如果還有 gripper 也可以加
+    };
+  }
+
+private:
+
+void playTrajectoryWithFollower(const trajectory_msgs::msg::JointTrajectory & traj)
+{
+  if (traj.points.empty())
+  {
+    RCLCPP_WARN(this->get_logger(), "Empty trajectory, nothing to execute.");
+    return;
+  }
+
+  RCLCPP_INFO(this->get_logger(),
+              "Executing trajectory with %zu points via follower...",
+              traj.points.size());
+
+  // 這是第一個點的 time_from_start，通常是 0
+  rclcpp::Duration prev_time = traj.points.front().time_from_start;
+
+  for (size_t i = 0; i < traj.points.size(); ++i)
+  {
+    const auto & pt = traj.points[i];
+
+    // 1) 先算這個點跟前一點的時間差
+    rclcpp::Duration dt = pt.time_from_start - prev_time;
+    if (dt.nanoseconds() < 0)
+    {
+      // 保護一下，理論上不會 < 0
+      dt = rclcpp::Duration(0, 0);
+    }
+
+    // 2) 先 sleep 到該時間點再送
+    if (i > 0)  // 第一點通常是 t=0，可以直接送
+    {
+      auto sleep_ns = std::chrono::nanoseconds(dt.nanoseconds());
+      rclcpp::sleep_for(sleep_ns);
+    }
+
+    // 3) 把這個 JointTrajectoryPoint 轉成 JointState
+    sensor_msgs::msg::JointState js;
+    js.header.stamp = this->now();
+
+    if (pt.positions.size() != traj.joint_names.size())
+    {
+      RCLCPP_WARN(this->get_logger(),
+                  "Point[%zu] positions size (%zu) != joint_names size (%zu)",
+                  i, pt.positions.size(), traj.joint_names.size());
+      continue;
+    }
+
+    for (size_t j = 0; j < traj.joint_names.size(); ++j)
+    {
+      const std::string & moveit_name = traj.joint_names[j];
+
+      auto it = moveit_to_follower_.find(moveit_name);
+      if (it == moveit_to_follower_.end())
+      {
+        RCLCPP_WARN(this->get_logger(),
+                    "No follower mapping for MoveIt joint '%s'",
+                    moveit_name.c_str());
+        continue;
+      }
+
+      const std::string & follower_name = it->second;
+
+      js.name.push_back(follower_name);
+      js.position.push_back(pt.positions[j]);  // rad → rad，follower 裡會轉成 deg
+    }
+
+    if (js.name.empty())
+    {
+      RCLCPP_WARN(this->get_logger(), "Point[%zu] has no mapped joints, skip.", i);
+      continue;
+    }
+
+    js_control_pub_->publish(js);
+    RCLCPP_DEBUG(this->get_logger(), "Published JointState point[%zu] with %zu joints.",
+                 i, js.name.size());
+
+    // 4) 更新 prev_time，用來算下一個點的 dt
+    prev_time = pt.time_from_start;
+  }
+
+  RCLCPP_INFO(this->get_logger(), "Trajectory execution via follower finished.");
+}
+
+  moveit::planning_interface::MoveGroupInterface move_group_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr js_control_pub_;
+
+  std::map<std::string, std::string> moveit_to_follower_;
+  
+};
+*/
 
 // ===================== ctor =====================
 
@@ -76,14 +210,22 @@ MpToMoveIt::MpToMoveIt()
   pos_tol_       = this->declare_parameter<double>("goal_position_tolerance", 0.05); // 位置容忍度
 
   // Teleop 相關參數
+  /*
   scale_x_        = this->declare_parameter<double>("teleop_scale_x", 0.8);
   scale_y_        = this->declare_parameter<double>("teleop_scale_y", 0.8); // 先關掉 Y 軸控制
   scale_z_        = this->declare_parameter<double>("teleop_scale_z", 0.8);
+  */
   max_robot_dist_ = this->declare_parameter<double>("max_robot_distance", 0.7); // 與你原本的 0.7m 一致
 
   // TF
   tf_buffer_   = std::make_unique<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+
+  /*
+  joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
+  "joint_states", 10,
+  std::bind(&MpToMoveIt::jointStateCb, this, std::placeholders::_1));
+  */
 
   // MoveIt 介面延後初始化（確保 shared_from_this 可用）
   init_timer_ = this->create_wall_timer(
@@ -189,12 +331,92 @@ void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
       return;
     }
   }
+
+  geometry_msgs::msg::Point target_pos = target.pose.position; // 假設你前面已經轉好 target 了
+
+// ====== [NEW] 安全啟動邏輯 (Homing) - TF 版 ======
+    if (!control_active_) {
+        
+        // [修改] 不用 move_group_->getCurrentPose()，改用 TF 查「最新」位置
+        // 這樣可以避開 "Failed to fetch current robot state" 的時間同步問題
+        
+        // 1. 確認 End-Effector 名字 (防呆)
+        std::string eef_name = eef_link_;
+        if (eef_name.empty()) {
+            eef_name = move_group_->getEndEffectorLink();
+        }
+        // 如果還是空的，就預設一個 (請改成你 URDF 裡真正的夾爪 link)
+        if (eef_name.empty()) eef_name = "gripper_static_1"; 
+
+        geometry_msgs::msg::Point current_robot_pos;
+        bool tf_success = false;
+
+        try {
+            // ★ 關鍵：使用 tf2::TimePointZero 拿「最新」的一筆資料
+            auto tf_robot = tf_buffer_->lookupTransform(
+                plan_frame_,      // Target frame (base_link)
+                eef_name,         // Source frame (gripper)
+                tf2::TimePointZero 
+            );
+            
+            current_robot_pos.x = tf_robot.transform.translation.x;
+            current_robot_pos.y = tf_robot.transform.translation.y;
+            current_robot_pos.z = tf_robot.transform.translation.z;
+            tf_success = true;
+
+        } catch (const tf2::TransformException & ex) {
+            // 如果 TF 還沒準備好，就先跳過這一次
+            RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000, 
+                "Waiting for robot TF (%s -> %s): %s", 
+                plan_frame_.c_str(), eef_name.c_str(), ex.what());
+            return;
+        }
+
+        if (tf_success) {
+            // B. 計算距離 (手 vs 機械手臂)
+            double dist = std::sqrt(
+              std::pow(target_pos.x - current_robot_pos.x, 2) +
+              std::pow(target_pos.y - current_robot_pos.y, 2) +
+              std::pow(target_pos.z - current_robot_pos.z, 2)
+            );
+
+            // C. 設定閾值 (例如 15 公分 - 放寬一點比較好對準)
+            double sync_threshold = 0.05; 
+
+            if (dist < sync_threshold) {
+              if (!is_syncing_) {
+                sync_start_time_ = this->now();
+                is_syncing_ = true;
+                RCLCPP_INFO(this->get_logger(), "🟡 Detected! Hold still to activate...");
+              } else {
+                auto duration = this->now() - sync_start_time_;
+                if (duration.seconds() > 1.5) {
+                  control_active_ = true;
+                  RCLCPP_INFO(this->get_logger(), "🟢 LOCKED ON! Control Active!");
+                }
+              }
+            } else {
+              is_syncing_ = false;
+              // 印出座標來除錯
+              RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 1000, 
+                "🔴 Safety Lock: Dist: %.3fm\n"
+                "   👉 Hand : (%.3f, %.3f, %.3f)\n"
+                "   🤖 Robot: (%.3f, %.3f, %.3f) [%s]", 
+                dist, 
+                target_pos.x, target_pos.y, target_pos.z,
+                current_robot_pos.x, current_robot_pos.y, current_robot_pos.z,
+                eef_name.c_str());
+            }
+        }
+        return;
+    }
 /*
   RCLCPP_WARN(this->get_logger(),
     "[OUT] frame=%s  p=(%.3f, %.3f, %.3f)",
     plan_frame_.c_str(),
     target.pose.position.x, target.pose.position.y, target.pose.position.z);
 */
+  /*
   // 手的位置（在 base_link / plan_frame_）
   const auto& hand_cur = target.pose.position;
 
@@ -207,7 +429,8 @@ void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
       "[DROP][HAND_DIST] hand_dist=%.2f m too far, skip.", hand_dist);
     return;
   }
-
+  */
+  /*
   // ====== 第一次有效輸入：建立參考點（calibration）======
   if (!calibrated_) {
     hand_ref_ = hand_cur;   // 記住這一刻「手」的位置
@@ -237,7 +460,7 @@ void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
   double dy_hand = hand_cur.y - hand_ref_.y;
   double dz_hand = hand_cur.z - hand_ref_.z;
 
-  hand_ref_ = hand_cur; // 更新參考點（類似積分器）
+  //hand_ref_ = hand_cur; // 更新參考點（類似積分器）
 
   // 把 Δhand 映射到 Δrobot（可縮放）
   double dx_robot = scale_x_ * dx_hand;
@@ -246,18 +469,37 @@ void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
 
   // 機械手臂的目標位置 = gripper_ref + Δrobot
   geometry_msgs::msg::Point P_target;
-  P_target.x = gripper_ref_pose_.position.x + dx_robot;
-  P_target.y = gripper_ref_pose_.position.y + dy_robot;
+  P_target.x = gripper_ref_pose_.position.x - dy_robot;
+  P_target.y = gripper_ref_pose_.position.y + dx_robot;
   P_target.z = gripper_ref_pose_.position.z + dz_robot;
+*/
+  // [PLUS] 加入這段新的邏輯
 
+  // 1. 直接取得轉換後的絕對座標
+  // target 是已經經過 TF 轉換，變成了 base_link 座標系下的手部位置
+  // 所以 target.pose.position.x 就是機器人前方的 X 座標
+  geometry_msgs::msg::Point P_target = target.pose.position;
 
+  // 2. (可選) 座標修正
+  // 有時候雖然 TF 轉過來了，但如果覺得手的位置直接對應 End-Effector 太危險，
+  // 可以在這裡加一點 offset (偏移量)。
+  // 例如：希望手在相機前，但機器人 End-Effector 保持在手前方 10cm 處，不要碰到手
+  // P_target.x += 0.0; 
+  // P_target.y += 0.0;
+  // P_target.z += 0.0;
 
+  // 3. [非常重要] 範圍限制 (Clamp) 維持開啟
+  // 絕對模式下最怕 TF 算錯，手跑到 3 公尺外，手臂會被拉斷。
+  // 必須強制把座標鎖在安全工作區內。
   P_target.x = clamp(P_target.x, X_MIN, X_MAX, this->get_logger());
   P_target.y = clamp(P_target.y, Y_MIN, Y_MAX, this->get_logger());
   P_target.z = clamp(P_target.z, Z_MIN, Z_MAX, this->get_logger());
 
-  gripper_ref_pose_.position = P_target; // 更新參考點（類似積分器）
-
+  // Log 方便除錯
+  RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+    "[ABSOLUTE] Hand(base_frame): (%.3f, %.3f, %.3f) -> Clamped: (%.3f, %.3f, %.3f)",
+    target.pose.position.x, target.pose.position.y, target.pose.position.z,
+    P_target.x, P_target.y, P_target.z);
 
 
 
@@ -273,9 +515,8 @@ void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
   }
 
   RCLCPP_WARN(this->get_logger(),
-    "[TARGET] gripper_target=(%.3f, %.3f, %.3f), Δhand=(%.3f, %.3f, %.3f)",
-    P_target.x, P_target.y, P_target.z,
-    dx_hand, dy_hand, dz_hand);
+    "[TARGET] gripper_target=(%.3f, %.3f, %.3f),",
+    P_target.x, P_target.y, P_target.z);
 
   // 2) 去抖（看「機械手目標點」的變化）
   if (has_prev_) {
@@ -314,6 +555,16 @@ void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
     return;
   }
 
+/*
+  if (result == moveit::core::MoveItErrorCode::SUCCESS){
+    const auto & traj = plan.trajectory_.joint_trajectory;
+    playTrajectoryWithFollower(traj);
+  }
+  else{
+    RCLCPP_WARN(this->get_logger(), "Planning failed, skip execution.");
+  }
+*/
+
   if (allow_exec_) {
     auto ex = move_group_->execute(plan);
     if (ex != moveit::core::MoveItErrorCode::SUCCESS) {
@@ -329,6 +580,8 @@ void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
       P_target.x, P_target.y, P_target.z);
   }
 }
+
+
 
 // ===================== main =====================
 
