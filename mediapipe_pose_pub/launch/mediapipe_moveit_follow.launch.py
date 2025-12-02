@@ -42,15 +42,26 @@ def generate_launch_description():
     base_to_cam = Node(
         package='tf2_ros', executable='static_transform_publisher',
         name='static_base_to_cam',
-        arguments=['0.00', '0.80', '0', '-1.5708', '0', '0', 'base_link', 'camera_link'],
+        arguments=['0.0', '0.8', '0.0', '-1.5708', '0', '0', 'low_cost_robot/base_link', 'camera_link'],
         output='screen'
     )
+    
     cam_to_optical = Node(
         package='tf2_ros', executable='static_transform_publisher',
         name='static_cam_to_optical',
         arguments=['0','0','0','-1.5708','0','-1.5708','camera_link','camera_color_optical_frame'],
         output='screen'
     )
+        # ③-2 把舊的 low_cost_robot/base_link 接回來（避免 MoveIt 抱怨兩棵樹）
+    low_cost_to_base = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_low_cost_to_base',
+        # 0 位移 / 0 角度：直接當成同一個點
+        arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'low_cost_robot/base_link'],
+        output='screen'
+    )
+
 
     # ④ MoveIt bringup（這裡面已包含 move_group 與控制器）
     moveit_demo = IncludeLaunchDescription(
@@ -111,6 +122,7 @@ def generate_launch_description():
         realsense_launch,
         base_to_cam,
         cam_to_optical,
+        low_cost_to_base,
         moveit_demo,       # 只保留這個，別再另外手動起 move_group
         mp_node,
         delayed_driver,    # 稍微延遲 2 秒讓 move_group 先穩定

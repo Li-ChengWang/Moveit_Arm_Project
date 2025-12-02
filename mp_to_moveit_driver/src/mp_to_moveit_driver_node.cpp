@@ -78,7 +78,7 @@ private:
       {"joint3", "elbow_flex"},
       {"joint4", "wrist_flex"},
       {"joint5", "wrist_roll"},
-      {"gripper_joint", "gripper"} 
+      {"joint_gripper", "gripper"} 
   };
 
   // 手動執行軌跡的函式
@@ -97,12 +97,12 @@ MpToMoveIt::MpToMoveIt()
   // 參數宣告
   group_name_    = this->declare_parameter<std::string>("group_name", "arm");
   eef_link_      = this->declare_parameter<std::string>("end_effector_link", "");
-  plan_frame_    = this->declare_parameter<std::string>("planning_frame", "base_link");
-  target_topic_  = this->declare_parameter<std::string>("target_pose_topic", "/target_pose");
+  plan_frame_    = this->declare_parameter<std::string>("plan_frame", "base_link");
+  target_topic_  = this->declare_parameter<std::string>("target_topic", "/target_pose");
   min_trans_     = this->declare_parameter<double>("min_goal_translation_delta", 0.01);
   planning_time_ = this->declare_parameter<double>("planning_time", 1.5);
-  vel_scale_     = this->declare_parameter<double>("max_velocity_scaling", 0.2);
-  acc_scale_     = this->declare_parameter<double>("max_acceleration_scaling", 0.2);
+  vel_scale_     = this->declare_parameter<double>("max_velocity_scaling", 0.1);
+  acc_scale_     = this->declare_parameter<double>("max_acceleration_scaling", 0.1);
   allow_exec_    = this->declare_parameter<bool>("allow_execute", false);
   pos_tol_       = this->declare_parameter<double>("goal_position_tolerance", 0.05); 
   max_robot_dist_ = this->declare_parameter<double>("max_robot_distance", 0.7);
@@ -152,6 +152,25 @@ MpToMoveIt::MpToMoveIt()
       }
 
       RCLCPP_INFO(this->get_logger(), "MoveIt Groups Ready!");
+
+      // =========== [NEW] 強制發送全 0.0 (對應您的校正姿勢) ===========
+      RCLCPP_INFO(this->get_logger(), "Sending ZERO pose to robot (Calibration Check)...");
+      
+      sensor_msgs::msg::JointState home_msg;
+      home_msg.header.stamp = this->now();
+      
+      // 強制所有軸都設為 0.0，不讓 MoveIt 的 SRDF 設定干擾校正
+      for (const auto& name : DRIVER_JOINT_ORDER) {
+          home_msg.name.push_back(name);
+          home_msg.position.push_back(0.0); 
+      }
+      
+      // 發送給 Python 驅動
+      js_control_pub_->publish(home_msg);
+      
+      // 稍微等一下讓手臂歸位，再允許手勢控制
+      std::this_thread::sleep_for(3s); 
+      // ==========================================================
     });
 
   // 訂閱目標
@@ -264,6 +283,14 @@ void MpToMoveIt::poseCb(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
               }
           } else {
               is_syncing_ = false;
+              RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 1000, 
+              "🔴 Safety Lock: Dist: %.3fm\n"
+              "   👉 Hand : (%.3f, %.3f, %.3f)\n"
+              "   🤖 Robot: (%.3f, %.3f, %.3f) [%s]", 
+              dist, 
+              target_pos.x, target_pos.y, target_pos.z,
+              tf_robot.transform.translation.x, tf_robot.transform.translation.y, tf_robot.transform.translation.z,
+              eef_name.c_str());
           }
       } catch (...) {}
       return; 
