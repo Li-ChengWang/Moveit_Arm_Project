@@ -66,7 +66,7 @@ def generate_launch_description():
     # ④ MoveIt bringup（這裡面已包含 move_group 與控制器）
     moveit_demo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            join(get_package_share_directory('koch_moveit_config'), 'launch', 'demo_ros2_control.launch.py')
+            join(get_package_share_directory('koch_moveit_config'), 'launch', 'run_my_robot.launch.py')
         )
     )
 

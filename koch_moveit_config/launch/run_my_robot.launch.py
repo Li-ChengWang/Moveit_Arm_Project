@@ -1,6 +1,8 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from moveit_configs_utils import MoveItConfigsBuilder
+from ament_index_python.packages import get_package_share_directory # ★ 補上這個
+from os.path import join  # ★ 補上這個
 import os
 
 def generate_launch_description():
@@ -40,6 +42,8 @@ def generate_launch_description():
             mc.robot_description_semantic,
             mc.planning_pipelines,
             mc.robot_description_kinematics, # ★ [修正] 原本寫 .kinematics 導致錯誤
+            mc.joint_limits,
+            mc.trajectory_execution,
         ],
         output="screen",
     )
